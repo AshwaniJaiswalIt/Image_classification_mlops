@@ -77,14 +77,14 @@ jobs:
         echo "Test coverage report generated"
         
     - name: Upload coverage HTML report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: coverage-report-html
         path: heart_disease_code/htmlcov/
         retention-days: 30
     
     - name: Upload coverage XML
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: coverage-report-xml
@@ -133,7 +133,7 @@ jobs:
         echo "All model artifacts generated successfully"
     
     - name: Upload trained models
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: trained-models
         path: |
@@ -144,14 +144,14 @@ jobs:
         retention-days: 30
     
     - name: Upload preprocessing config
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: preprocessing-config
         path: preprocessing_config.json
         retention-days: 30
     
     - name: Upload training logs
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: training-logs
