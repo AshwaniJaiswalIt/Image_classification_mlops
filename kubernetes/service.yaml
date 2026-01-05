@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: heart-disease-service
+  labels:
+    app: heart-disease-api
+spec:
+  type: LoadBalancer
+  selector:
+    app: heart-disease-api
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+    nodePort: 30000  # Optional: Fixed NodePort for consistent access
+  sessionAffinity: None

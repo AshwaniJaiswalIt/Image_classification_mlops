@@ -3,12 +3,14 @@
 ## 📁 Project Structure
 ```
 assignment1_mlops/
-├── COMMANDS.md                    ← You are here
+├── COMMANDS.md                    ← Quick reference
 ├── assignment1.ipynb              ← Tasks 1-4
 ├── requirements.txt               ← All dependencies
 ├── heart_disease_code/            ← Task 5 (CI/CD)
 │   └── COMMANDS.md
-└── api/                           ← Docker API
+├── api/                           ← Task 6 (Docker API)
+│   └── COMMANDS.md
+└── kubernetes/                    ← Task 7 (Minikube)
     └── COMMANDS.md
 ```
 
@@ -131,6 +133,80 @@ docker rm heart-api
 
 ---
 
+## ☸️ Task 7: Kubernetes Deployment (Minikube)
+
+### Start Minikube
+```powershell
+minikube start
+```
+
+### Build Image in Minikube
+```powershell
+# Point Docker to Minikube's Docker
+minikube docker-env | Invoke-Expression
+
+# Build image
+cd api
+docker build -t heart-disease-api:v1 .
+cd ..
+```
+
+### Deploy to Kubernetes
+```powershell
+# Apply deployment and service
+kubectl apply -f kubernetes/deployment.yaml
+kubectl apply -f kubernetes/service.yaml
+```
+
+### Verify Deployment
+```powershell
+# Check pods
+kubectl get pods
+
+# Check deployment
+kubectl get deployments
+
+# Check service
+kubectl get services
+```
+
+### Access the API
+```powershell
+# Open service in browser
+minikube service heart-disease-service
+
+# Or get URL
+minikube service heart-disease-service --url
+```
+
+### Test API
+```powershell
+# Get URL
+$API_URL = minikube service heart-disease-service --url
+
+# Test health
+curl "$API_URL/health"
+
+# View docs
+# Open: $API_URL/docs in browser
+```
+
+### Screenshots to Take
+```powershell
+kubectl get pods -o wide
+kubectl get deployment heart-disease-deployment
+kubectl get service heart-disease-service
+# Also: Browser screenshots of /docs and /health endpoints
+```
+
+### Cleanup
+```powershell
+kubectl delete -f kubernetes/
+minikube stop
+```
+
+---
+
 ## 📊 Assignment Tasks Checklist
 
 - [ ] Task 1: Data Acquisition & EDA (5 marks)
@@ -155,6 +231,11 @@ docker rm heart-api
   - Run: `cd api && docker build -t heart-disease-api .`
   - Test: `docker run -p 8000:8000 heart-disease-api`
 
+- [ ] Task 7: Kubernetes Deployment (7 marks)
+  - Run: `minikube start`
+  - Deploy: `kubectl apply -f kubernetes/`
+  - Access: `minikube service heart-disease-service`
+
 ---
 
 ## 🔍 Detailed Commands
@@ -162,6 +243,7 @@ docker rm heart-api
 See folder-specific COMMANDS.md:
 - `heart_disease_code/COMMANDS.md` - Testing details
 - `api/COMMANDS.md` - Docker details
+- `kubernetes/COMMANDS.md` - Minikube deployment details
 
 ---
 
