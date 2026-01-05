@@ -167,6 +167,18 @@ kubectl apply -f kubernetes/deployment.yaml
 kubectl apply -f kubernetes/service.yaml
 ```
 
+### Update After Code Changes
+```powershell
+# Rebuild image in Minikube
+minikube docker-env | Invoke-Expression
+cd api
+docker build -t heart-disease-api:v1 .
+cd ..
+
+# Restart deployment
+kubectl rollout restart deployment heart-disease-deployment
+```
+
 ### Verify Deployment
 ```powershell
 # Check pods
