@@ -59,13 +59,12 @@ try:
     print("Loading models...")
     with open(f'{MODEL_DIR}/random_forest_model.pkl', 'rb') as f:
         rf_model = pickle.load(f)
-    with open(f'{MODEL_DIR}/imputer.pkl', 'rb') as f:
-        imputer = pickle.load(f)
+    # Note: imputer not needed for API - it only handles ca/thal columns from training data
+    # API input validation ensures no missing values
     print("✅ Models loaded successfully")
 except Exception as e:
     print(f"❌ Error loading models: {e}")
     rf_model = None
-    imputer = None
 
 # Root endpoint
 @app.get("/")
@@ -87,7 +86,7 @@ def read_root():
 @app.get("/health")
 def health_check():
     """Check if API and models are healthy"""
-    models_loaded = rf_model is not None and imputer is not None
+    models_loaded = rf_model is not None
     return {
         "status": "healthy" if models_loaded else "unhealthy",
         "models_loaded": models_loaded,
@@ -123,7 +122,7 @@ def predict(patient: PatientData) -> Dict:
         - probabilities: Probability for each class
     """
     # Check if models are loaded
-    if rf_model is None or imputer is None:
+    if rf_model is None:
         raise HTTPException(status_code=503, detail="Models not loaded")
     
     try:
@@ -135,12 +134,9 @@ def predict(patient: PatientData) -> Dict:
             patient.thal
         ]])
         
-        # Apply imputation (though likely not needed for API input)
-        features_imputed = imputer.transform(features)
-        
-        # Make prediction
-        prediction = rf_model.predict(features_imputed)[0]
-        probabilities = rf_model.predict_proba(features_imputed)[0]
+        # Make prediction directly (no imputation needed - API validates complete input)
+        prediction = rf_model.predict(features)[0]
+        probabilities = rf_model.predict_proba(features)[0]
         
         # Get confidence (probability of predicted class)
         confidence = float(probabilities[prediction])
@@ -177,7 +173,7 @@ def predict_batch(patients: list[PatientData]) -> Dict:
     
     Returns list of predictions
     """
-    if rf_model is None or imputer is None:
+    if rf_model is None:
         raise HTTPException(status_code=503, detail="Models not loaded")
     
     results = []

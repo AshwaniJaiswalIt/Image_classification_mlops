@@ -49,13 +49,12 @@ Model `.pkl` files are not in git (too large). Generate them by running the note
 ```powershell
 # Open assignment1.ipynb in VS Code
 # Run all cells (Cell → Run All)
-# This creates: random_forest_model.pkl, imputer.pkl, logistic_model.pkl
+# This creates: random_forest_model.pkl
 ```
 
 Then copy to api folder:
 ```powershell
 Copy-Item random_forest_model.pkl api/models/
-Copy-Item imputer.pkl api/models/
 ```
 
 ---
