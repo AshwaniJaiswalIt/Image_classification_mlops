@@ -1,6 +1,6 @@
 # MLOps Assignment - Complete Commands Guide
 
-## 📁 Project Structure
+## Project Structure
 ```
 assignment1_mlops/
 ├── COMMANDS.md                    ← Quick reference
@@ -14,9 +14,11 @@ assignment1_mlops/
     └── COMMANDS.md
 ```
 
+## For final report and Screenshots please refer the 'screenshorts' folder
+
 ---
 
-## 🚀 Quick Start (First Time Setup - REQUIRED!)
+## Quick Start (First Time Setup - REQUIRED!)
 
 ### 1. Create Virtual Environment & Install ALL Packages
 ```powershell
@@ -30,7 +32,7 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
-**⚠️ IMPORTANT:** You MUST run `pip install -r requirements.txt` before running any commands!
+**IMPORTANT:** You MUST run `pip install -r requirements.txt` before running any commands!
 
 This installs:
 - pytest (for testing)
@@ -40,7 +42,7 @@ This installs:
 
 ---
 
-## ✅ Task 1-4: Run Jupyter Notebook
+## Task 1-4: Run Jupyter Notebook
 
 ### Run Notebook
 ```powershell
@@ -60,7 +62,7 @@ Open: http://localhost:5000
 
 ---
 
-## ✅ Task 5: CI/CD & Testing
+## Task 5: CI/CD & Testing
 
 ### Navigate to Code Folder
 ```powershell
@@ -95,7 +97,7 @@ cd ..
 
 ---
 
-## 🐳 Task 6: Docker API
+## Task 6: Docker API
 
 ### Navigate to API Folder
 ```powershell
@@ -142,7 +144,7 @@ docker rm heart-api
 
 ---
 
-## ☸️ Task 7: Kubernetes Deployment (Minikube)
+## Task 7: Kubernetes Deployment (Minikube)
 
 ### Start Minikube
 ```powershell
@@ -217,7 +219,7 @@ minikube stop
 
 ---
 
-## 📊 Assignment Tasks Checklist
+## Assignment Tasks Checklist
 
 - [ ] Task 1: Data Acquisition & EDA (5 marks)
   - Run: `jupyter notebook assignment1.ipynb` (Cells 1-28)
@@ -253,7 +255,7 @@ minikube stop
 
 ---
 
-## 🔍 Detailed Commands
+## Detailed Commands
 
 See folder-specific COMMANDS.md:
 - `heart_disease_code/COMMANDS.md` - Testing details
@@ -262,7 +264,7 @@ See folder-specific COMMANDS.md:
 
 ---
 
-## 📦 Dependencies (in requirements.txt)
+## Dependencies (in requirements.txt)
 
 Core ML:
 - pandas, numpy, scikit-learn
