@@ -66,3 +66,12 @@ desktop.ini
 
 # Documentation builds
 docs/_build/
+
+# Runtime artifacts and data
+cats_dogs_dataset/
+models/
+api_logs.log
+training_config.json
+
+# DVC cache and data
+.dvc/

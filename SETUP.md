@@ -1,30 +1,30 @@
-# ⚠️ SETUP FIRST - Run This on New Laptop
+﻿#  SETUP FIRST - Run This on New Laptop
 
 ## Step-by-Step Setup
 
 ### 1. Create Virtual Environment
-```powershell
+`powershell
 python -m venv venv
-```
+`
 
 ### 2. Activate Virtual Environment
-```powershell
+`powershell
 .\venv\Scripts\Activate.ps1
-```
+`
 
 ### 3. Install ALL Dependencies (REQUIRED!)
-```powershell
+`powershell
 pip install -r requirements.txt
-```
+`
 
 **This installs:**
 - pytest (for testing)
 - flake8 (for linting)  
-- jupyter + ipykernel (for notebooks)
-- All ML libraries (matplotlib, pandas, etc.)
+- tensorflow, pillow, opencv, dvc
+- All other ML libraries (pandas, numpy, etc.)
 
 ### 4. Verify Installation
-```powershell
+`powershell
 pytest --version
 # Should show: pytest 7.4.3
 
@@ -33,56 +33,60 @@ flake8 --version
 
 python -c "import matplotlib; print('matplotlib OK')"
 # Should show: matplotlib OK
-```
+`
 
-### 5. Setup Jupyter Kernel (For Notebook)
-**Open assignment1.ipynb:**
-1. Click the **kernel selector** in top-right corner (shows Python version)
-2. Select **"Python Environments"**
-3. Choose **your venv interpreter**: `.\venv\Scripts\python.exe`
+### 5. Pull dataset using DVC
+The cats vs dogs images are tracked with DVC and are not committed to Git.
+After installing dvc (already added to requirements), run:
 
-Now all notebook cells will use your venv with matplotlib installed.
+`powershell
+cd Image_classification_mlops
+pip install dvc
+# fetch the data
+dvc pull cats_dogs_dataset
+`
+
+The folder cats_dogs_dataset/ will be populated with two subdirectories (cats/ and dogs/).
 
 ### 6. Generate Model Files (Required for Docker API)
-Model `.pkl` files are not in git (too large). Generate them by running the notebook:
+Run the training pipeline to create the Keras model used by the API:
 
-```powershell
-# Open assignment1.ipynb in VS Code
-# Run all cells (Cell → Run All)
-# This creates: random_forest_model.pkl
-```
+`powershell
+python train_pipeline.py
+`
 
-Then copy to api folder:
-```powershell
-Copy-Item random_forest_model.pkl api/models/
-```
+Once training completes, copy the generated model into the API directory:
+
+`powershell
+Copy-Item cat_dog_model.h5 api/models/
+`
 
 ---
 
-## ❌ Common Errors
+##  Common Errors
 
-**Error:** `pytest : The term 'pytest' is not recognized`  
-**Cause:** You didn't run `pip install -r requirements.txt`
+**Error:** pytest : The term 'pytest' is not recognized  
+**Cause:** You didn't run pip install -r requirements.txt
 
-**Error:** `No module named 'matplotlib'` in notebook  
+**Error:** No module named 'matplotlib' in notebook  
 **Cause:** Notebook using wrong kernel. Follow step 5 above to select venv kernel.
 
-**Error:** `COPY models/ models/` fails in Docker build  
-**Cause:** Model files don't exist. Run notebook to generate them (step 6).
+**Error:** COPY models/ models/ fails in Docker build  
+**Cause:** Model files don't exist. Run pipeline to generate them (step 6).
 
 **Solution:**
-```powershell
+`powershell
 # Make sure venv is activated (you see (venv) in prompt)
 pip install -r requirements.txt
-```
+`
 
 ---
 
-## ✅ After Setup
+##  After Setup
 
 Now you can run:
-- `pytest -v` - Run tests
-- `jupyter notebook assignment1.ipynb` - Run notebook
-- `flake8 src tests` - Run linting
+- pytest -v - Run tests
+- python train_pipeline.py - Train the model
+- lake8 src tests - Run linting
 
-See README.md for all commands.
+See README.md for full command list.

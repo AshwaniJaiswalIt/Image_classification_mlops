@@ -13,8 +13,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY app.py .
 
-# Copy model file (only random_forest_model.pkl needed)
-COPY models/random_forest_model.pkl models/
+# Copy model file (only cat_dog_model.h5 needed)
+COPY models/cat_dog_model.h5 models/
 
 # Expose port 8000 for the API
 EXPOSE 8000

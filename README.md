@@ -1,19 +1,19 @@
-# MLOps Assignment - Complete Commands Guide
+# MLOps Assignment – Cats vs Dogs Image Classification
 
 ## Project Structure
 ```
-assignment1_mlops/
+Image_classification_mlops/
 ├── COMMANDS.md                    ← Quick reference
-├── assignment1.ipynb              ← Tasks 1-4
-├── requirements.txt               ← All dependencies
-├── heart_disease_code/            ← Task 5 (CI/CD)
-│   └── COMMANDS.md
-├── api/                           ← Task 6 (Docker API)
-│   └── COMMANDS.md
-└── kubernetes/                    ← Task 7 (Minikube)
-    └── COMMANDS.md
+├── train_pipeline.py              ← Script to train CNN and save artifacts
+├── requirements.txt               ← All dependencies (including TF, Pillow, DVC)
+├── cats_dogs_dataset/             ← DVC‑tracked images (not in Git)
+├── cats_dogs_code/            ← renamed folder containing image utilities & tests
+│   └── COMMANDS.md                ← Testing/CI instructions
+├── api/                           ← FastAPI inference service
+│   └── COMMANDS.md                ← Docker commands
+└── kubernetes/                    ← Kubernetes manifests
+    └── COMMANDS.md                ← Deployment instructions
 ```
-
 ## For final report and Screenshots please refer the 'screenshorts' folder
 
 ---
@@ -42,51 +42,60 @@ This installs:
 
 ---
 
-## Task 1-4: Run Jupyter Notebook
+## Task 1-4: Model Development & Experiment Tracking
 
-### Run Notebook
+### Data Versioning
+The image dataset is large and is tracked with DVC. After cloning the repo:
 ```powershell
-jupyter notebook assignment1.ipynb
+cd Image_classification_mlops
+pip install dvc
+# pull data (requires internet)
+dvc pull cats_dogs_dataset
 ```
-**Execute all cells** (Shift + Enter on each cell or Cell → Run All)
 
-### View MLflow Results
+### Run Notebook (if provided)
+*This project does not rely on a notebook; the training script (`train_pipeline.py`) performs all steps.*
+
+### Train Model
+```powershell
+python train_pipeline.py
+```
+This will load images from `cats_dogs_dataset/`, build a simple CNN, train for 1 epoch, and
+write `cat_dog_model.h5` and `training_config.json`.
+
+### View MLflow Results (if enabled)
 ```powershell
 mlflow ui
 ```
 Open: http://localhost:5000
 
 **Output Files:**
-- `*.pkl` - Trained models
-- `preprocessing_config.json` - Configuration
+- `cat_dog_model.h5` – Trained Keras model
+- `training_config.json` – Run configuration and metrics
 
 ---
 
-## Task 5: CI/CD & Testing
+## Task 2-5: CI/CD & Testing
 
 ### Navigate to Code Folder
 ```powershell
-cd heart_disease_code
+cd cats_dogs_code
 ```
 
 ### Run Unit Tests
 ```powershell
 pytest -v
 ```
-Expected: 12 passed
+(should exercise the image preprocessing and training utilities)
 
 ### Run Tests with Coverage
 ```powershell
 pytest -v --cov=src --cov-report=html
 ```
-View report: `htmlcov/index.html`
+See `htmlcov/index.html` for coverage reports.
 
 ### Run Linting
 ```powershell
-# Check for errors
-flake8 src tests --count --select=E9,F63,F7,F82 --show-source --statistics
-
-# Full style check
 flake8 src tests
 ```
 
@@ -94,6 +103,11 @@ flake8 src tests
 ```powershell
 cd ..
 ```
+
+### CI Pipeline (see section below)
+
+The CI configuration (GitHub Actions) installs dependencies, runs lint/tests, and builds the
+Docker image. The workflow file is located at `.github/workflows/ci.yml`.
 
 ---
 
@@ -106,18 +120,33 @@ cd api
 
 ### Build Docker Image
 ```powershell
-docker build -t heart-disease-api .
+# replace <your-tag> with appropriate name, e.g. cats-dogs-api
+docker build -t cats-dogs-api .
 ```
-Time: ~3-5 minutes (first time)
 
 ### Run Container
 ```powershell
-docker run -d -p 8000:8000 --name heart-api heart-disease-api
+docker run -d -p 8000:8000 --name cats-api cats-dogs-api
 ```
 
 ### Test API
 ```powershell
-# Open in browser
+# health
+curl http://localhost:8000/health
+# prediction (upload a file)
+curl -X POST "http://localhost:8000/predict" -F "file=@path/to/image.jpg"
+```
+
+### Run Tests
+```powershell
+python test_api.py
+```
+
+### Stop Container
+```powershell
+docker stop cats-api
+docker rm cats-api
+```
 http://localhost:8000/docs
 
 # Or run test script
@@ -236,7 +265,7 @@ minikube stop
   - Files: `*.pkl`, `preprocessing_config.json`
 
 - [ ] Task 5: CI/CD (8 marks)
-  - Run: `cd heart_disease_code && pytest -v`
+  - Run: `cd cats_dogs_code && pytest -v`
   - GitHub Actions: Auto-runs on push
 
 - [ ] Task 6: Docker API
@@ -258,7 +287,7 @@ minikube stop
 ## Detailed Commands
 
 See folder-specific COMMANDS.md:
-- `heart_disease_code/COMMANDS.md` - Testing details
+- `cats_dogs_code/COMMANDS.md` - Testing details
 - `api/COMMANDS.md` - Docker details
 - `kubernetes/COMMANDS.md` - Minikube deployment details
 

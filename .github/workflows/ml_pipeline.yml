@@ -28,18 +28,18 @@ jobs:
     - name: Lint with flake8 (Syntax Errors)
       run: |
         echo "Checking for Python syntax errors..."
-        flake8 heart_disease_code/src heart_disease_code/tests --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 cats_dogs_code/src cats_dogs_code/tests --count --select=E9,F63,F7,F82 --show-source --statistics
     
     - name: Lint with flake8 (Style Check)
       run: |
         echo "Checking code style..."
-        flake8 heart_disease_code/src heart_disease_code/tests --count --max-complexity=10 --max-line-length=127 --statistics
+        flake8 cats_dogs_code/src cats_dogs_code/tests --count --max-complexity=10 --max-line-length=127 --statistics
       continue-on-error: true
     
     - name: Lint with pylint
       run: |
         echo "Running pylint analysis..."
-        pylint heart_disease_code/src --exit-zero
+        pylint cats_dogs_code/src --exit-zero
       continue-on-error: true
     
     - name: Linting Summary
@@ -68,19 +68,19 @@ jobs:
     
     - name: Run unit tests with coverage
       run: |
-        cd heart_disease_code
+        cd cats_dogs_code
         pytest tests/ -v --cov=src --cov-report=xml --cov-report=html --cov-report=term
     
     - name: Display coverage summary
       run: |
-        cd heart_disease_code
+        cd cats_dogs_code
         echo "Test coverage report generated"
         
     - name: Upload coverage HTML report
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report-html
-        path: heart_disease_code/htmlcov/
+        path: cats_dogs_code/htmlcov/
         retention-days: 30
     
     - name: Upload coverage XML
@@ -88,7 +88,7 @@ jobs:
       if: always()
       with:
         name: coverage-report-xml
-        path: heart_disease_code/coverage.xml
+        path: cats_dogs_code/coverage.xml
         retention-days: 30
     
     - name: Testing Summary
@@ -117,7 +117,7 @@ jobs:
     - name: Verify dataset exists
       run: |
         echo "Checking for dataset..."
-        ls -la heart_disease_dataset/
+        ls -la cats_dogs_dataset/
         echo "Dataset found: processed.cleveland.data"
     
     - name: Train models
