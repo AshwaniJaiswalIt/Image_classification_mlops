@@ -72,6 +72,7 @@ cats_dogs_dataset/
 models/
 api_logs.log
 training_config.json
+PetImages/
 
 # DVC: ignore local cache but track .dvc metadata files
 .dvc/cache
