@@ -330,3 +330,97 @@ pillow==10.1.0
 numpy==1.26.2
 requests==2.31.0
 ```
+
+---
+
+## M3: CI Pipeline for Build, Test & Image Creation
+
+### M3 Completion Status
+
+| Task | Status | Details |
+|------|--------|---------|
+| **Automated unit tests** | ✅ Done | 11 tests — preprocessing (9) + model (2) — run via pytest |
+| **CI pipeline (GitHub Actions)** | ✅ Done | `.github/workflows/ci.yml` — 3 jobs triggered on push/PR |
+| **Artifact publishing (GHCR)** | ✅ Done | Pushes to `ghcr.io/<owner>/cats-dogs-api` on merge to main |
+
+---
+
+### CI Pipeline — `.github/workflows/ci.yml`
+
+3 sequential jobs, triggered on every push and pull request:
+
+```
+push / PR
+    │
+    ▼
+┌─────────────────────────────┐
+│  Job 1: test                │  lint (flake8) + pytest (11 tests) + coverage artifact
+└──────────────┬──────────────┘
+               │ needs: test
+               ▼
+┌─────────────────────────────┐
+│  Job 2: build               │  docker build (validation, no push)
+└──────────────┬──────────────┘
+               │ needs: build + push to main only
+               ▼
+┌─────────────────────────────┐
+│  Job 3: publish             │  docker push → ghcr.io/<owner>/cats-dogs-api
+└─────────────────────────────┘
+```
+
+### Job Details
+
+| Job | What it does |
+|-----|-------------|
+| `test` | Checkout → install deps → flake8 lint → `pytest tests/ -v --cov=src` → upload `coverage.xml` artifact |
+| `build` | Checkout → Docker Buildx → build image (validates Dockerfile, uses GHA cache) |
+| `publish` | Login to GHCR with `GITHUB_TOKEN` → build + push with `sha-` and `latest` tags |
+
+### No Extra Secrets Needed
+
+The publish job uses `secrets.GITHUB_TOKEN` (automatically available in every GitHub Actions run) — **no manual secret setup required** for GHCR.
+
+---
+
+### Triggering the Pipeline
+
+**You need to do (manual steps):**
+
+1. Push to GitHub:
+```powershell
+git push origin feature/assignment2-cats
+```
+
+2. Go to **GitHub → your repo → Actions tab** — watch the 3 jobs run
+
+3. After merge to main, the image appears at:
+```
+ghcr.io/<your-github-username>/cats-dogs-api:latest
+```
+
+4. Pull it anywhere:
+```bash
+docker pull ghcr.io/<your-github-username>/cats-dogs-api:latest
+```
+
+---
+
+### Published Image Tags
+
+| Tag | When created |
+|-----|-------------|
+| `latest` | Every push to main |
+| `sha-<commit-hash>` | Every push to main (pinned version) |
+
+---
+
+### Unit Tests (M3 Task 1)
+
+```powershell
+cd cats_dogs_code
+python -m pytest tests/ -v
+```
+
+**Coverage:**
+- `test_preprocessing.py` — 9 tests covering `load_images_from_folder`, `split_dataset`, `preprocess_single_image`, `augment_image`, `augment_dataset`, `get_augmentation_metadata`
+- `test_model.py` — 2 tests covering `build_simple_cnn`, `train_cnn`, `evaluate_model`, `save_model`, `load_model`
