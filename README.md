@@ -208,3 +208,125 @@ Loss: binary_crossentropy | Optimizer: adam
 | numpy, matplotlib | Numerics and plots |
 | dvc | Dataset versioning |
 | pytest, pytest-cov, flake8 | Testing and linting |
+| fastapi, uvicorn | Inference API server |
+| requests | API test client |
+
+---
+
+## M2: Model Packaging & Containerization
+
+### M2 Completion Status
+
+| Task | Status | Details |
+|------|--------|---------|
+| **FastAPI inference service** | ✅ Done | `api/app.py` — `/health` + `/predict` + `/model/info` endpoints |
+| **Environment specification** | ✅ Done | `api/requirements.txt` — all ML libs pinned with versions |
+| **Dockerfile** | ✅ Done | `api/Dockerfile` — reproducible container with health check |
+| **Local build & verify** | ✅ Done | Build + run commands below |
+
+---
+
+### API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | API info and endpoint listing |
+| GET | `/health` | Health check — confirms model is loaded |
+| POST | `/predict` | Upload image → returns label + confidence + probability |
+| GET | `/model/info` | Model type, input shape, class names |
+| GET | `/metrics` | Request counts, response times, status codes |
+| GET | `/logs` | Recent request logs |
+
+### Files
+
+```
+api/
+├── app.py              ← FastAPI service (image preprocessing + CNN inference)
+├── Dockerfile          ← Container definition (python:3.9-slim base)
+├── requirements.txt    ← Pinned versions: fastapi, uvicorn, tensorflow, pillow, numpy
+├── .dockerignore       ← Excludes venv, __pycache__, test files
+├── test_api.py         ← Test script for /health, /model/info, /predict
+└── models/
+    └── cat_dog_model.h5  ← Trained CNN model (copied from training)
+```
+
+---
+
+### Build and Run Docker Container
+
+```powershell
+# Navigate to api/ folder
+cd api
+
+# Build the Docker image
+docker build -t cats-dogs-api:latest .
+
+# Run the container
+docker run -d -p 8000:8000 --name cats-api cats-dogs-api:latest
+
+# Check container is running
+docker ps
+```
+
+---
+
+### Verify Predictions
+
+```powershell
+# Health check
+curl http://localhost:8000/health
+# Response: {"status":"healthy","models_loaded":true,"model_type":"Simple CNN"}
+
+# Model info
+curl http://localhost:8000/model/info
+
+# Predict from an image file (replace path with a real image)
+curl -X POST "http://localhost:8000/predict" -F "file=@path/to/cat.jpg"
+# Response: {"prediction":0,"prediction_label":"cat","confidence":0.92,"probability":0.08}
+
+# Or open the interactive docs in a browser
+# http://localhost:8000/docs
+```
+
+### Run the Test Script (after starting the container)
+
+```powershell
+python test_api.py
+# Runs: test_health, test_model_info, test_prediction
+```
+
+---
+
+### Stop and Remove Container
+
+```powershell
+docker stop cats-api
+docker rm cats-api
+```
+
+---
+
+### Run API Locally Without Docker
+
+```powershell
+cd api
+pip install -r requirements.txt
+uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+# Open: http://localhost:8000/docs
+```
+
+---
+
+### Environment Specification (api/requirements.txt)
+
+All versions pinned for reproducibility:
+
+```
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic==2.5.3
+tensorflow==2.14.0
+pillow==10.1.0
+numpy==1.26.2
+requests==2.31.0
+```
