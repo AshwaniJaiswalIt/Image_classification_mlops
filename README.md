@@ -537,3 +537,74 @@ Start-Sleep 30
 # Run smoke tests
 python smoke_test.py
 ```
+
+---
+
+## M5: Monitoring, Logs & Model Performance Tracking
+
+### M5 Completion Status
+
+| Task | Status | Details |
+|------|--------|---------|
+| **Request/response logging** | ✅ Done | `api/app.py` middleware logs every request (method, path, status, latency) to file + stdout |
+| **Request count & latency tracking** | ✅ Done | In-app counters exposed at `/metrics` endpoint |
+| **Model performance tracking** | ✅ Done | `model_monitor.py` — batch simulation, accuracy, latency, saves `monitoring_report.json` |
+
+---
+
+### Task 1: Logging & Metrics — `api/app.py`
+
+Already implemented in the FastAPI service:
+
+| What | Where |
+|------|-------|
+| Every request logged (method, path, status, duration) | `log_requests` middleware → `api_logs.log` + stdout |
+| Total request count | `metrics["total_requests"]` counter |
+| Per-endpoint request counts | `metrics["endpoint_counts"]` |
+| Latency tracking | `metrics["total_response_time"]` → average exposed at `/metrics` |
+| Live metrics API | `GET /metrics` |
+| Live log API | `GET /logs` |
+
+```powershell
+# View live metrics (while container is running)
+curl.exe http://localhost:8000/metrics
+
+# View recent request logs
+curl.exe http://localhost:8000/logs
+```
+
+---
+
+### Task 2: Model Performance Tracking — `model_monitor.py`
+
+Run after deployment to collect and analyse a batch of predictions:
+
+```powershell
+# Make sure the API is running first
+docker run -d -p 8000:8000 --name cats-api cats-dogs-api:latest
+Start-Sleep -Seconds 30
+
+# Run the monitor
+python model_monitor.py
+```
+
+**What it does:**
+- Sends 10 simulated PNG images (5 cat-coloured, 5 dog-coloured) to `/predict`
+- Compares predictions against simulated true labels
+- Reports: accuracy, correct count, avg latency per request
+- Fetches live `/metrics` from the API (total requests, avg response time, success rate)
+- Saves full report to `monitoring_report.json`
+
+**Example output:**
+```
+[ 1] true=0 pred=0 (cat) conf=0.87 latency=0.241s  ✓
+[ 6] true=1 pred=1 (dog) conf=0.79 latency=0.198s  ✓
+...
+  Samples     : 10
+  Accuracy    : 70.00%
+  Avg latency : 0.215s
+  Total requests    : 23
+  Avg response time : 0.21s
+  Success rate      : 100.00%
+Report saved to monitoring_report.json
+```

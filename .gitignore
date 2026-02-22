@@ -79,6 +79,7 @@ mlruns/
 confusion_matrix.png
 training_curves.png
 PetImages/
+monitoring_report.json
 
 # DVC: ignore local cache but track .dvc metadata files
 .dvc/cache
