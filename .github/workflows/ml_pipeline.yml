@@ -107,11 +107,23 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Set up DVC and restore dataset
+    - name: Create synthetic dataset for CI
       run: |
-        pip install dvc
-        echo "Dataset would be pulled from DVC remote in production."
-        echo "Skipping dvc pull in CI (no remote configured)."
+        python - <<'EOF'
+        import os
+        import numpy as np
+        from PIL import Image
+
+        for cls in ['cats', 'dogs']:
+            os.makedirs(f'cats_dogs_dataset/{cls}', exist_ok=True)
+            for i in range(20):
+                img = Image.fromarray(
+                    np.random.randint(0, 255, (64, 64, 3), dtype=np.uint8)
+                )
+                img.save(f'cats_dogs_dataset/{cls}/{cls}_{i}.jpg')
+
+        print("Synthetic dataset created: 20 cats + 20 dogs (64x64 RGB JPEGs)")
+        EOF
 
     - name: Train model with MLflow tracking
       run: |

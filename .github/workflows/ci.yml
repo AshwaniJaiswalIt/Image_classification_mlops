@@ -67,6 +67,30 @@ jobs:
         env:
           IMAGE_NAME: ${{ env.IMAGE_NAME }}
 
+      - name: Set up Python for model creation
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Create minimal model for Docker build
+        run: |
+          pip install tensorflow==2.20.0 numpy --quiet
+          python - <<'EOF'
+          import os, numpy as np
+          import tensorflow as tf
+          from tensorflow.keras import layers, models
+
+          os.makedirs("api/models", exist_ok=True)
+          m = models.Sequential([
+              layers.Input(shape=(224, 224, 3)),
+              layers.Flatten(),
+              layers.Dense(1, activation='sigmoid')
+          ])
+          m.compile(optimizer='adam', loss='binary_crossentropy')
+          m.save("api/models/cat_dog_model.h5")
+          print("Minimal model saved to api/models/cat_dog_model.h5")
+          EOF
+
       - name: Build image (verify it compiles)
         uses: docker/build-push-action@v5
         with:
@@ -114,6 +138,30 @@ jobs:
           tags: |
             type=sha,prefix=sha-
             type=raw,value=latest
+
+      - name: Set up Python for model creation
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Create minimal model for Docker build
+        run: |
+          pip install tensorflow==2.20.0 numpy --quiet
+          python - <<'EOF'
+          import os, numpy as np
+          import tensorflow as tf
+          from tensorflow.keras import layers, models
+
+          os.makedirs("api/models", exist_ok=True)
+          m = models.Sequential([
+              layers.Input(shape=(224, 224, 3)),
+              layers.Flatten(),
+              layers.Dense(1, activation='sigmoid')
+          ])
+          m.compile(optimizer='adam', loss='binary_crossentropy')
+          m.save("api/models/cat_dog_model.h5")
+          print("Minimal model saved to api/models/cat_dog_model.h5")
+          EOF
 
       - name: Build and push image to GHCR
         uses: docker/build-push-action@v5
