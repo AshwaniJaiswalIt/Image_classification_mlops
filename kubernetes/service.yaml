@@ -1,16 +1,16 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: heart-disease-service
+  name: cats-dogs-api
   labels:
-    app: heart-disease-api
+    app: cats-dogs-api
 spec:
   type: LoadBalancer
   selector:
-    app: heart-disease-api
+    app: cats-dogs-api
   ports:
   - protocol: TCP
     port: 8000
     targetPort: 8000
-    nodePort: 30000  # Optional: Fixed NodePort for consistent access
+    nodePort: 30001
   sessionAffinity: None

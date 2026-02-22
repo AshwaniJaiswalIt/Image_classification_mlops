@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: heart-disease-deployment
+  name: cats-dogs-api
   labels:
-    app: heart-disease-api
+    app: cats-dogs-api
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: heart-disease-api
+      app: cats-dogs-api
   template:
     metadata:
       labels:
-        app: heart-disease-api
+        app: cats-dogs-api
     spec:
       containers:
-      - name: heart-disease-api
-        image: heart-disease-api:v1
-        imagePullPolicy: Never  # Use local image from Minikube
+      - name: cats-dogs-api
+        image: cats-dogs-api:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 8000
         env:
@@ -25,20 +25,22 @@ spec:
           value: "8000"
         resources:
           requests:
-            memory: "256Mi"
+            memory: "512Mi"
             cpu: "250m"
           limits:
-            memory: "512Mi"
+            memory: "1Gi"
             cpu: "500m"
         livenessProbe:
           httpGet:
             path: /health
             port: 8000
-          initialDelaySeconds: 10
-          periodSeconds: 10
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /health
             port: 8000
-          initialDelaySeconds: 5
-          periodSeconds: 5
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 3
