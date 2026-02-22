@@ -1,8 +1,8 @@
-name: CD – Deploy & Smoke Test
+name: CD - Deploy and Smoke Test
 
 on:
   workflow_run:
-    workflows: ["CI \u2013 Build, Test & Publish"]
+    workflows: ["CI - Build, Test & Publish"]
     types: [completed]
     branches: [main, master]
 
@@ -11,9 +11,9 @@ env:
   IMAGE_NAME: ${{ github.repository_owner }}/cats-dogs-api
 
 jobs:
-  # ── Deploy to Docker Compose (local/VM target) ────────────────────────────
+  # Deploy to Docker (local runner target)
   deploy:
-    name: Deploy via Docker Compose
+    name: Deploy via Docker
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
@@ -51,7 +51,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           echo "Container started"
 
-  # ── Smoke Tests ──────────────────────────────────────────────────────────
+  # Smoke Tests
   smoke-test:
     name: Smoke Tests
     runs-on: ubuntu-latest
