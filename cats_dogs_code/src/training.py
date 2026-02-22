@@ -55,12 +55,17 @@ def evaluate_model(model: tf.keras.Model, X_test: np.ndarray, y_test: np.ndarray
     """Evaluate model performance on test data and return metrics."""
     probs = model.predict(X_test).flatten()
     preds = (probs >= 0.5).astype(int)
+    try:
+        roc_auc = float(roc_auc_score(y_test, probs))
+    except ValueError:
+        # roc_auc_score requires both classes present; default to 0.5 (random baseline)
+        roc_auc = 0.5
     metrics = {
         'accuracy': float(accuracy_score(y_test, preds)),
-        'precision': float(precision_score(y_test, preds)),
-        'recall': float(recall_score(y_test, preds)),
-        'f1_score': float(f1_score(y_test, preds)),
-        'roc_auc': float(roc_auc_score(y_test, probs))
+        'precision': float(precision_score(y_test, preds, zero_division=0)),
+        'recall': float(recall_score(y_test, preds, zero_division=0)),
+        'f1_score': float(f1_score(y_test, preds, zero_division=0)),
+        'roc_auc': roc_auc
     }
     return metrics
 
