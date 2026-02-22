@@ -84,9 +84,7 @@ PetImages/
 .dvc/cache
 .dvc/tmp
 
-# Generated plots and temp test files
-confusion_matrix.png
-training_curves.png
+# Temp test files (generated during testing, not needed in git)
 cats_dogs_code/test_full_output.txt
 cats_dogs_code/all_tests_output*.txt
 cats_dogs_code/test_readable.txt

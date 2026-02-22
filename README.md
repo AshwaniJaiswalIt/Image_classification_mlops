@@ -6,7 +6,6 @@
 
 ## Project Structure
 
-## Project Structure
 ```
 Image_classification_mlops/
 ├── PetImages/                    ← Raw dataset (DVC-tracked)
