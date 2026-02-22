@@ -6,6 +6,7 @@
 
 ## Project Structure
 
+## Project Structure
 ```
 Image_classification_mlops/
 ├── PetImages/                    ← Raw dataset (DVC-tracked)
@@ -32,6 +33,8 @@ Image_classification_mlops/
 ├── requirements.txt
 └── README.md
 ```
+
+## For final report and Screenshots please refer the 'screenshorts' folder
 
 ---
 
