@@ -1,0 +1,98 @@
+name: CD – Deploy & Smoke Test
+
+on:
+  workflow_run:
+    workflows: ["CI \u2013 Build, Test & Publish"]
+    types: [completed]
+    branches: [main, master]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/cats-dogs-api
+
+jobs:
+  # ── Deploy to Docker Compose (local/VM target) ────────────────────────────
+  deploy:
+    name: Deploy via Docker Compose
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull latest image from GHCR
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          echo "Pulled image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+
+      - name: Stop existing container (if running)
+        run: |
+          docker stop cats-dogs-api || true
+          docker rm cats-dogs-api || true
+
+      - name: Deploy new container
+        run: |
+          docker run -d \
+            --name cats-dogs-api \
+            -p 8000:8000 \
+            --restart unless-stopped \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          echo "Container started"
+
+  # ── Smoke Tests ──────────────────────────────────────────────────────────
+  smoke-test:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    needs: deploy
+
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Start service for smoke testing
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          docker run -d \
+            --name cats-dogs-smoke \
+            -p 8000:8000 \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          echo "Smoke test container started"
+
+      - name: Run smoke tests
+        run: |
+          python smoke_test.py
+
+      - name: Print container logs on failure
+        if: failure()
+        run: |
+          echo "=== Container logs ==="
+          docker logs cats-dogs-smoke
+
+      - name: Stop smoke test container
+        if: always()
+        run: |
+          docker stop cats-dogs-smoke || true
+          docker rm cats-dogs-smoke || true

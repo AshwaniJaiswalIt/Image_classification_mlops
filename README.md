@@ -426,3 +426,114 @@ python -m pytest tests/ -v
 **Coverage:**
 - `test_preprocessing.py` — 9 tests covering `load_images_from_folder`, `split_dataset`, `preprocess_single_image`, `augment_image`, `augment_dataset`, `get_augmentation_metadata`
 - `test_model.py` — 2 tests covering `build_simple_cnn`, `train_cnn`, `evaluate_model`, `save_model`, `load_model`
+
+---
+
+## M4: CD Pipeline & Deployment
+
+### M4 Completion Status
+
+| Task | Status | Details |
+|------|--------|---------|
+| **Deployment target** | ✅ Done | Docker container on runner + Kubernetes manifests (`kubernetes/`) |
+| **CD workflow (GitHub Actions)** | ✅ Done | `.github/workflows/cd.yml` — auto-triggered when CI passes on main |
+| **K8s Deployment + Service YAML** | ✅ Done | `kubernetes/deployment.yaml` + `kubernetes/service.yaml` |
+| **Smoke tests** | ✅ Done | `smoke_test.py` — /health + /model/info + /predict, fails pipeline on error |
+
+---
+
+### Files
+
+```
+.github/workflows/cd.yml     ← CD pipeline (deploy + smoke-test jobs)
+kubernetes/
+├── deployment.yaml          ← K8s Deployment (2 replicas, GHCR image, liveness/readiness probes)
+└── service.yaml             ← K8s Service (LoadBalancer, port 8000, nodePort 30000)
+smoke_test.py                ← Post-deploy smoke test script (stdlib only, no extra deps)
+```
+
+---
+
+### CD Pipeline — `.github/workflows/cd.yml`
+
+Triggered automatically after the CI pipeline (`ci.yml`) completes successfully on `main`:
+
+```
+CI passes on main
+      │
+      ▼
+┌─────────────────────────────┐
+│  Job 1: deploy              │  pull GHCR image → stop old container → start new container
+└──────────────┬──────────────┘
+               │ needs: deploy
+               ▼
+┌─────────────────────────────┐
+│  Job 2: smoke-test          │  run smoke_test.py → fail pipeline if any check fails
+└─────────────────────────────┘
+```
+
+### GitOps Flow (/workflow)
+
+```
+git push → main
+  → CI: test → build → publish image to GHCR  (ci.yml)
+  → CD: deploy → smoke-test                    (cd.yml)
+```
+
+---
+
+### Kubernetes Deployment
+
+```yaml
+# kubernetes/deployment.yaml
+image: ghcr.io/ashwanijaiswalit/cats-dogs-api:latest
+replicas: 2
+livenessProbe:  /health (60s initial delay for TF model load)
+readinessProbe: /health (30s initial delay)
+resources: 512Mi-1Gi memory, 250m-500m CPU
+```
+
+#### To deploy to a local Kubernetes cluster (minikube/kind):
+```bash
+# Start minikube
+minikube start
+
+# Apply manifests
+kubectl apply -f kubernetes/deployment.yaml
+kubectl apply -f kubernetes/service.yaml
+
+# Check status
+kubectl get pods
+kubectl get services
+
+# Access the service
+minikube service cats-dogs-api
+
+# Run smoke tests
+python smoke_test.py
+```
+
+---
+
+### Smoke Tests — `smoke_test.py`
+
+3 tests run after every deployment, using Python stdlib only (no extra deps):
+
+| Test | What it checks |
+|------|---------------|
+| `/health` | Returns `{"status":"healthy","models_loaded":true}` |
+| `/model/info` | Returns model_type and classes fields |
+| `/predict` | Accepts image upload, returns `prediction_label` (cat/dog) and confidence |
+
+- **Retries** up to 10 times (10s delay) waiting for service to start
+- **Exits with code 1** if any test fails → fails the CD pipeline
+
+#### Run locally:
+```powershell
+# Make sure container is running first
+docker run -d -p 8000:8000 --name cats-api cats-dogs-api:latest
+Start-Sleep 30
+
+# Run smoke tests
+python smoke_test.py
+```
